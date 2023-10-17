@@ -16,11 +16,20 @@ dependencies: ## install dependencies
 	go mod verify
 	go mod vendor
 
-# .PHONY: generate-mocks
-# generate-mocks: ## generate mocks
-# 	go mod tidy
-# 	go mod verify
-# 	go mod vendor
+.PHONY: test
+test: ## run tests
+	go test ./internal/... -coverprofile coverage.out
+	go tool cover -func coverage.out | grep ^total:
+
+.PHONY: tools
+tools: ## get tools
+	git config core.hooksPath .githooks
+	go get -u github.com/golang/mock/gomock
+	go get -u github.com/golang/mock/mockgen
+
+.PHONY: generate-mocks
+generate-mocks: ## generate mocks
+	mockgen -package=mock_converters -source internal/pkg/converters/converter.go -destination=internal/pkg/converters/mocks/converter_mock.go	go mod verify
 
 .PHONY: generate-api-schema
 generate-api-schema: ## generate api schema using swagger

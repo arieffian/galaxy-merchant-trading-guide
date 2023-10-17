@@ -2,51 +2,29 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"os"
-	"os/signal"
-	"syscall"
 	"time"
 
-	log "github.com/sirupsen/logrus"
-
 	"github.com/arieffian/roman-alien-currency/internal/app"
-	"github.com/arieffian/roman-alien-currency/internal/config"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
-	shutDownTimeout = 10 * time.Second
+	contextDeadline = 10 * time.Second
 )
 
 func main() {
 	log.SetFormatter(&log.JSONFormatter{})
-	cfg, err := config.NewConfig()
-	if err != nil {
-		log.Fatalf("Failed to load config. %+v", err)
-	}
 
-	ctx := context.Background()
-
-	server, err := app.NewServer(ctx, *cfg)
-	if err != nil {
-		log.Fatalf("failed to create the new server: %s\n", err)
-	}
-
-	go func() {
-		if err := server.Listen(cfg.APIAddress); err != nil {
-			log.Panic(err)
-		}
-	}()
-
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
-
-	ctx, cancel := context.WithTimeout(context.Background(), shutDownTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), contextDeadline)
 	defer cancel()
 
-	<-c
-	fmt.Println("Gracefully shutting down...")
-	_ = server.Shutdown(ctx)
+	cli, err := app.NewCli(ctx)
+	if err != nil {
+		log.Fatalf("failed to create the new cli: %s\n", err)
+	}
 
-	fmt.Println("Fiber was successful shutdown.")
+	err = cli.Run(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
