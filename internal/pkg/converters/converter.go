@@ -9,6 +9,7 @@ import (
 type ConverterService interface {
 	RomanToArabic(romanNumber string) (int, error)
 	ArabicToRoman(number int) (string, error)
+	AlienToRoman(alienDictionary map[string]string, alienNumber []string) (string, error)
 }
 
 type converter struct{}
@@ -78,4 +79,19 @@ func (c *converter) ArabicToRoman(arabicNumber int) (string, error) {
 	result := m3[arabicNumber%10000/1000] + m2[arabicNumber%1000/100] + m1[arabicNumber%100/10] + m0[arabicNumber%10]
 
 	return result, nil
+}
+
+func (c *converter) AlienToRoman(alienDictionary map[string]string, alienNumber []string) (string, error) {
+	romans := ""
+
+	for _, alien := range alienNumber {
+		roman, ok := alienDictionary[alien]
+		if !ok {
+			return "", errors.New("invalid alien number")
+		}
+
+		romans += roman
+	}
+
+	return romans, nil
 }

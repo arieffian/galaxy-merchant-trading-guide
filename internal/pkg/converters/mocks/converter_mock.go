@@ -33,6 +33,21 @@ func (m *MockConverterService) EXPECT() *MockConverterServiceMockRecorder {
 	return m.recorder
 }
 
+// AlienToRoman mocks base method.
+func (m *MockConverterService) AlienToRoman(alienDictionary map[string]string, alienNumber []string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AlienToRoman", alienDictionary, alienNumber)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AlienToRoman indicates an expected call of AlienToRoman.
+func (mr *MockConverterServiceMockRecorder) AlienToRoman(alienDictionary, alienNumber interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AlienToRoman", reflect.TypeOf((*MockConverterService)(nil).AlienToRoman), alienDictionary, alienNumber)
+}
+
 // ArabicToRoman mocks base method.
 func (m *MockConverterService) ArabicToRoman(number int) (string, error) {
 	m.ctrl.T.Helper()

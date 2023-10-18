@@ -1,5 +1,4 @@
 #!make
-include .env
 
 default: help
 
@@ -29,12 +28,9 @@ tools: ## get tools
 
 .PHONY: generate-mocks
 generate-mocks: ## generate mocks
-	mockgen -package=mock_converters -source internal/pkg/converters/converter.go -destination=internal/pkg/converters/mocks/converter_mock.go	go mod verify
-
-.PHONY: generate-api-schema
-generate-api-schema: ## generate api schema using swagger
-	./scripts/bundle-api.sh
-	./scripts/generate-code.sh
+	mockgen -package=mock_converters -source internal/pkg/converters/converter.go -destination=internal/pkg/converters/mocks/converter_mock.go
+	mockgen -package=mock_readers -source internal/pkg/readers/file.go -destination=internal/pkg/readers/mocks/file_mock.go
+	mockgen -package=mock_parsers -source internal/pkg/parsers/parser.go -destination=internal/pkg/parsers/mocks/parser_mock.go
 
 .PHONY: run-local
 run-local: ## run the application locally

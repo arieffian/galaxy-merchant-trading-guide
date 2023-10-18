@@ -1,53 +1,50 @@
 package app
 
 import (
-	"bufio"
 	"context"
 	"fmt"
-	"log"
-	"os"
 
 	"github.com/arieffian/roman-alien-currency/internal/pkg/converters"
+	"github.com/arieffian/roman-alien-currency/internal/pkg/parsers"
+	"github.com/arieffian/roman-alien-currency/internal/pkg/readers"
 )
 
 type cli struct {
-	converter converters.ConverterService
+	converter  converters.ConverterService
+	parser     parsers.ParserService
+	fileReader readers.FileService
 }
 
-func NewCli(ctx context.Context) (*cli, error) {
-	converter := converters.NewConverter()
+type NewCliParams struct {
+	Converter  converters.ConverterService
+	Parser     parsers.ParserService
+	FileReader readers.FileService
+}
+
+func NewCli(p NewCliParams) (*cli, error) {
 
 	return &cli{
-		converter: converter,
+		converter:  p.Converter,
+		parser:     p.Parser,
+		fileReader: p.FileReader,
 	}, nil
 }
 
 func (c *cli) Run(ctx context.Context) error {
 
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Print("Enter file location: ")
-	fileLoc, _ := reader.ReadString('\n')
-
-	fileLoc = fileLoc[:len(fileLoc)-1]
-
-	file, err := os.Open(fileLoc)
+	body, err := c.fileReader.ReadFile("input")
 	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
-
-	for scanner.Scan() {
-		fmt.Println(scanner.Text())
-	}
-
-	if err := scanner.Err(); err != nil {
 		return err
 	}
 
-	fmt.Println(c.converter.ArabicToRoman(999))
-	fmt.Println(c.converter.RomanToArabic("XXX"))
+	results, err := c.parser.Parse(body)
+	if err != nil {
+		return err
+	}
+
+	for _, result := range results {
+		fmt.Println(result)
+	}
 
 	return nil
 }

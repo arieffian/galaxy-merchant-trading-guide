@@ -5,6 +5,9 @@ import (
 	"time"
 
 	"github.com/arieffian/roman-alien-currency/internal/app"
+	"github.com/arieffian/roman-alien-currency/internal/pkg/converters"
+	"github.com/arieffian/roman-alien-currency/internal/pkg/parsers"
+	"github.com/arieffian/roman-alien-currency/internal/pkg/readers"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -18,7 +21,18 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), contextDeadline)
 	defer cancel()
 
-	cli, err := app.NewCli(ctx)
+	converter := converters.NewConverter()
+	parser := parsers.NewParser(parsers.NewParserParams{
+		Converter: converter,
+	})
+	fileReader := readers.NewFile()
+
+	cli, err := app.NewCli(app.NewCliParams{
+		Converter:  converter,
+		Parser:     parser,
+		FileReader: fileReader,
+	})
+
 	if err != nil {
 		log.Fatalf("failed to create the new cli: %s\n", err)
 	}
