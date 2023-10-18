@@ -1,150 +1,195 @@
 package parsers_test
 
-// func TestRomanToArabic(t *testing.T) {
+import (
+	"errors"
+	"testing"
 
-// 	converter := converters.NewConverter()
+	mockConverter "github.com/arieffian/roman-alien-currency/internal/pkg/converters/mocks"
+	"github.com/arieffian/roman-alien-currency/internal/pkg/parsers"
+	"github.com/go-test/deep"
+	"github.com/golang/mock/gomock"
+)
 
-// 	type args struct {
-// 		param string
-// 	}
+func TestParseCurrency(t *testing.T) {
 
-// 	type want struct {
-// 		result int
-// 		error  error
-// 	}
+	ctrl := gomock.NewController(t)
+	converter := mockConverter.NewMockConverterService(ctrl)
+	parser := parsers.NewParser(parsers.NewParserParams{
+		Converter: converter,
+	})
 
-// 	testcases := []struct {
-// 		name       string
-// 		args       args
-// 		beforeEach func(*testing.T, *args)
-// 		want       want
-// 	}{
-// 		{
-// 			name: "when there is invalid roman numeral should return error",
-// 			args: args{
-// 				param: "IIII",
-// 			},
-// 			beforeEach: func(t *testing.T, a *args) {},
-// 			want: want{
-// 				result: 0,
-// 				error:  errors.New("invalid roman number"),
-// 			},
-// 		},
-// 		{
-// 			name: "when there is leftover string should return error",
-// 			args: args{
-// 				param: "IIIXM",
-// 			},
-// 			beforeEach: func(t *testing.T, a *args) {},
-// 			want: want{
-// 				result: 0,
-// 				error:  errors.New("invalid roman number"),
-// 			},
-// 		},
-// 		{
-// 			name: "when there is valid roman numeral should return success",
-// 			args: args{
-// 				param: "III",
-// 			},
-// 			beforeEach: func(t *testing.T, a *args) {},
-// 			want: want{
-// 				result: 3,
-// 				error:  nil,
-// 			},
-// 		},
-// 	}
+	acceptedParams := []string{
+		"glob", "is", "I",
+	}
 
-// 	for _, tc := range testcases {
-// 		t.Run(tc.name, func(t *testing.T) {
+	notAcceptedParams := []string{
+		"glob", "prok", "Gold", "is", "57800", "Credits",
+	}
 
-// 			tc.beforeEach(t, &tc.args)
+	type args struct {
+		param []string
+	}
 
-// 			result, err := converter.RomanToArabic(tc.args.param)
+	type want struct {
+		result bool
+	}
 
-// 			if err != nil || tc.want.error != nil {
-// 				if diff := deep.Equal(err.Error(), tc.want.error.Error()); diff != nil {
-// 					t.Errorf("got unexpected error.\n expect: %v\n actual: %v\n diff: %v\n", tc.want.error, err, diff)
-// 				}
-// 			}
+	testcases := []struct {
+		name       string
+		args       args
+		beforeEach func(*testing.T, *args)
+		want       want
+	}{
+		{
+			name: "when input is valid should return success",
+			args: args{
+				param: acceptedParams,
+			},
+			beforeEach: func(t *testing.T, a *args) {},
+			want: want{
+				result: true,
+			},
+		},
+		{
+			name: "when input is invalid should return success",
+			args: args{
+				param: notAcceptedParams,
+			},
+			beforeEach: func(t *testing.T, a *args) {},
+			want: want{
+				result: false,
+			},
+		},
+	}
 
-// 			if diff := deep.Equal(result, tc.want.result); diff != nil {
-// 				t.Errorf("got unexpected result.\n expected: %v\n actual: %v\n diff: %v\n", tc.want.result, result, diff)
-// 			}
-// 		})
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
 
-// 	}
-// }
+			tc.beforeEach(t, &tc.args)
 
-// func TestArabicToRoman(t *testing.T) {
-// 	converter := converters.NewConverter()
+			result := parser.ParseCurrency(tc.args.param)
 
-// 	type args struct {
-// 		param int
-// 	}
+			if diff := deep.Equal(result, tc.want.result); diff != nil {
+				t.Errorf("got unexpected result.\n expected: %v\n actual: %v\n diff: %v\n", tc.want.result, result, diff)
+			}
+		})
 
-// 	type want struct {
-// 		result string
-// 		error  error
-// 	}
+	}
+}
 
-// 	testcases := []struct {
-// 		name       string
-// 		args       args
-// 		beforeEach func(*testing.T, *args)
-// 		want       want
-// 	}{
-// 		{
-// 			name: "when there is number greater than 3999 should return error",
-// 			args: args{
-// 				param: 4000,
-// 			},
-// 			beforeEach: func(t *testing.T, a *args) {},
-// 			want: want{
-// 				result: "",
-// 				error:  errors.New("number out of range"),
-// 			},
-// 		},
-// 		{
-// 			name: "when there is number less than 1 should return error",
-// 			args: args{
-// 				param: 0,
-// 			},
-// 			beforeEach: func(t *testing.T, a *args) {},
-// 			want: want{
-// 				result: "",
-// 				error:  errors.New("number out of range"),
-// 			},
-// 		},
-// 		{
-// 			name: "when there is number between 1 and 3999 should return success",
-// 			args: args{
-// 				param: 30,
-// 			},
-// 			beforeEach: func(t *testing.T, a *args) {},
-// 			want: want{
-// 				result: "XXX",
-// 				error:  nil,
-// 			},
-// 		},
-// 	}
+func TestGetCurrencyValue(t *testing.T) {
 
-// 	for _, tc := range testcases {
-// 		t.Run(tc.name, func(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	converter := mockConverter.NewMockConverterService(ctrl)
+	parser := parsers.NewParser(parsers.NewParserParams{
+		Converter: converter,
+	})
 
-// 			tc.beforeEach(t, &tc.args)
+	validParam := []string{
+		"glob", "glob",
+	}
 
-// 			result, err := converter.ArabicToRoman(tc.args.param)
+	invalidRomanParam := []string{
+		"glob", "glob", "glob", "glob",
+	}
 
-// 			if err != nil || tc.want.error != nil {
-// 				if diff := deep.Equal(err.Error(), tc.want.error.Error()); diff != nil {
-// 					t.Errorf("got unexpected error.\n expect: %v\n actual: %v\n diff: %v\n", tc.want.error, err, diff)
-// 				}
-// 			}
+	invalidParam := []string{
+		"glob", "prok",
+	}
 
-// 			if diff := deep.Equal(result, tc.want.result); diff != nil {
-// 				t.Errorf("got unexpected result.\n expected: %v\n actual: %v\n diff: %v\n", tc.want.result, result, diff)
-// 			}
-// 		})
+	type args struct {
+		param []string
+	}
 
-// 	}
-// }
+	type want struct {
+		result int
+		error  error
+	}
+
+	testcases := []struct {
+		name       string
+		args       args
+		beforeEach func(*testing.T, *args)
+		want       want
+	}{
+		{
+			name: "when input is valid should return success",
+			args: args{
+				param: validParam,
+			},
+			beforeEach: func(t *testing.T, a *args) {
+				converter.
+					EXPECT().
+					AlienToRoman(gomock.Any(), validParam).
+					Return("II", nil)
+
+				converter.
+					EXPECT().
+					RomanToArabic("II").
+					Return(2, nil)
+
+			},
+			want: want{
+				result: 2,
+				error:  nil,
+			},
+		},
+		{
+			name: "when input is invalid should return success",
+			args: args{
+				param: invalidParam,
+			},
+			beforeEach: func(t *testing.T, a *args) {
+				converter.
+					EXPECT().
+					AlienToRoman(gomock.Any(), invalidParam).
+					Return("", errors.New("invalid alien number"))
+			},
+			want: want{
+				result: 0,
+				error:  errors.New("invalid alien number"),
+			},
+		},
+		{
+			name: "when roman input is invalid should return success",
+			args: args{
+				param: invalidRomanParam,
+			},
+			beforeEach: func(t *testing.T, a *args) {
+				converter.
+					EXPECT().
+					AlienToRoman(gomock.Any(), invalidRomanParam).
+					Return("IIII", nil)
+
+				converter.
+					EXPECT().
+					RomanToArabic("IIII").
+					Return(0, errors.New("invalid roman number"))
+			},
+			want: want{
+				result: 0,
+				error:  errors.New("invalid roman number"),
+			},
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+
+			tc.beforeEach(t, &tc.args)
+
+			result, err := parser.GetCurrencyValue(tc.args.param)
+
+			if err != nil || tc.want.error != nil {
+				if diff := deep.Equal(err.Error(), tc.want.error.Error()); diff != nil {
+					t.Errorf("got unexpected error.\n expect: %v\n actual: %v\n diff: %v\n", tc.want.error, err, diff)
+				}
+			}
+
+			if diff := deep.Equal(result, tc.want.result); diff != nil {
+				t.Errorf("got unexpected result.\n expected: %v\n actual: %v\n diff: %v\n", tc.want.result, result, diff)
+			}
+		})
+
+	}
+}

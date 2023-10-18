@@ -54,7 +54,7 @@ func TestCLI(t *testing.T) {
 
 				parser.
 					EXPECT().
-					Parse([]string{"test", "test"}).
+					ParseCurrency([]string{"test", "test"}).
 					Return([]string{"test", "test"}, nil)
 			},
 			want: want{
@@ -90,7 +90,7 @@ func TestCLI(t *testing.T) {
 
 				parser.
 					EXPECT().
-					Parse([]string{"test", "test"}).
+					ParseCurrency([]string{"test", "test"}).
 					Return(nil, errors.New("error"))
 			},
 			want: want{

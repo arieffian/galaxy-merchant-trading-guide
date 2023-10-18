@@ -9,7 +9,14 @@ import (
 )
 
 type ParserService interface {
-	Parse(params []string) ([]string, error)
+	ParseCurrency(param []string) bool
+	GetCurrencyValue(param []string) (int, error)
+	ParseMetal(param []string) (bool, error)
+	ProcessQuestion(questions []string) ([]string, error)
+	HowMuchQuestion(question []string) (string, error)
+	HowManyQuestion(question []string) (string, error)
+	DoesQuestion(question []string) (string, error)
+	IsQuestion(question []string) (string, error)
 }
 
 type parser struct {
@@ -36,46 +43,6 @@ func NewParser(p NewParserParams) *parser {
 		metalValue:      map[string]int{},
 		converter:       p.Converter,
 	}
-}
-
-func (p *parser) Parse(params []string) ([]string, error) {
-
-	indices := []int{}
-	for idx, param := range params {
-		paramArr := strings.Split(param, " ")
-
-		found := p.ParseCurrency(paramArr)
-		if found {
-			indices = append(indices, idx)
-		}
-	}
-
-	// remove currency from params
-	for i, idx := range indices {
-		params = append(params[:idx-i], params[idx+1-i:]...)
-	}
-
-	indices = []int{}
-	for idx, param := range params {
-		paramArr := strings.Split(param, " ")
-
-		found, err := p.ParseMetal(paramArr)
-		if err != nil {
-			return nil, err
-		}
-		if found {
-			indices = append(indices, idx)
-		}
-	}
-
-	// remove currency from params
-	for i, idx := range indices {
-		params = append(params[:idx-i], params[idx+1-i:]...)
-	}
-
-	answers, _ := p.ProcessQuestion(params)
-
-	return answers, nil
 }
 
 func (p *parser) ParseCurrency(param []string) bool {
@@ -266,7 +233,7 @@ func (p *parser) IsQuestion(question []string) (string, error) {
 	thanIdx := slices.Index(question, "than")
 	answer := ""
 
-	value1Arr := []string{}
+	var value1Arr []string
 	value2Arr := question[thanIdx+1 : questionMarkIdx]
 
 	if largerIdx != -1 {
