@@ -27,6 +27,10 @@ func TestCLI(t *testing.T) {
 
 	ctx := context.Background()
 
+	validResult := []string{
+		"glob is I",
+	}
+
 	type args struct {
 		param context.Context
 	}
@@ -49,13 +53,23 @@ func TestCLI(t *testing.T) {
 			beforeEach: func(t *testing.T, a *args) {
 				fileReader.
 					EXPECT().
-					ReadFile("input").
-					Return([]string{"test", "test"}, nil)
+					ReadFile(gomock.Any()).
+					Return(validResult, nil)
 
 				parser.
 					EXPECT().
-					ParseCurrency([]string{"test", "test"}).
-					Return([]string{"test", "test"}, nil)
+					ParseCurrency(gomock.Any()).
+					Return(false)
+
+				parser.
+					EXPECT().
+					ParseMetal(gomock.Any()).
+					Return(false, nil)
+
+				parser.
+					EXPECT().
+					ProcessQuestion(gomock.Any()).
+					Return([]string{}, nil)
 			},
 			want: want{
 				error: nil,
@@ -85,13 +99,18 @@ func TestCLI(t *testing.T) {
 			beforeEach: func(t *testing.T, a *args) {
 				fileReader.
 					EXPECT().
-					ReadFile("input").
-					Return([]string{"test", "test"}, nil)
+					ReadFile(gomock.Any()).
+					Return(validResult, nil)
 
 				parser.
 					EXPECT().
-					ParseCurrency([]string{"test", "test"}).
-					Return(nil, errors.New("error"))
+					ParseCurrency(gomock.Any()).
+					Return(false)
+
+				parser.
+					EXPECT().
+					ParseMetal(gomock.Any()).
+					Return(false, errors.New("error"))
 			},
 			want: want{
 				error: errors.New("error"),
