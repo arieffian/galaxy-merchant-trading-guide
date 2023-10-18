@@ -33,14 +33,16 @@ var (
 var _ ParserService = (*parser)(nil)
 
 type NewParserParams struct {
-	Converter converters.ConverterService
+	Converter       converters.ConverterService
+	AlienDictionary map[string]string
+	MetalValue      map[string]int
 }
 
 func NewParser(p NewParserParams) *parser {
 
 	return &parser{
-		alienDictionary: map[string]string{},
-		metalValue:      map[string]int{},
+		alienDictionary: p.AlienDictionary,
+		metalValue:      p.MetalValue,
 		converter:       p.Converter,
 	}
 }
@@ -208,6 +210,7 @@ func (p *parser) DoesQuestion(question []string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	value2, err := p.GetCurrencyValue(value2Arr)
 	if err != nil {
 		return "", err
