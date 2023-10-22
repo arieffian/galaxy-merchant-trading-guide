@@ -255,9 +255,6 @@ func (p *parser) DoesQuestion(question []string) (string, error) {
 	totalValue1 := math.Trunc(float64(value1) * float64(metal1Value))
 	totalValue2 := math.Trunc(float64(value2) * float64(metal2Value))
 
-	fmt.Println(totalValue1)
-	fmt.Println(totalValue2)
-
 	if totalValue1 < totalValue2 {
 		answer = strings.Join(value1Arr, " ") + " " + cases.Title(language.AmericanEnglish, cases.Compact).String(metal1) + " has less Credits than " + strings.Join(value2Arr, " ") + " " + cases.Title(language.AmericanEnglish, cases.Compact).String(metal2)
 	} else if totalValue1 > totalValue2 {
