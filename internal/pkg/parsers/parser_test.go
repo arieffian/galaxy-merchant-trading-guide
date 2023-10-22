@@ -17,15 +17,15 @@ func TestParseCurrency(t *testing.T) {
 	parser := parsers.NewParser(parsers.NewParserParams{
 		Converter:       converter,
 		AlienDictionary: map[string]string{},
-		MetalValue:      map[string]int{},
+		MetalValue:      map[string]float64{},
 	})
 
 	acceptedParams := []string{
-		"glob", "is", "I",
+		"glob", "is", "i",
 	}
 
 	notAcceptedParams := []string{
-		"glob", "prok", "Gold", "is", "57800", "Credits",
+		"glob", "prok", "gold", "is", "57800", "credits",
 	}
 
 	type args struct {
@@ -86,7 +86,7 @@ func TestGetCurrencyValue(t *testing.T) {
 	parser := parsers.NewParser(parsers.NewParserParams{
 		Converter:       converter,
 		AlienDictionary: map[string]string{},
-		MetalValue:      map[string]int{},
+		MetalValue:      map[string]float64{},
 	})
 
 	validParam := []string{
@@ -205,25 +205,25 @@ func TestParserMetal(t *testing.T) {
 	parser := parsers.NewParser(parsers.NewParserParams{
 		Converter: converter,
 		AlienDictionary: map[string]string{
-			"glob": "I",
+			"glob": "i",
 		},
-		MetalValue: map[string]int{},
+		MetalValue: map[string]float64{},
 	})
 
 	validParam := []string{
-		"glob", "Gold", "is", "57800", "Credits",
+		"glob", "gold", "is", "57800", "credits",
 	}
 
-	validAlienCurrencyParam := []string{
-		"glob", "prok", "Gold", "is", "57800", "Credits",
+	invalidAlienCurrencyParam := []string{
+		"glob", "prok", "gold", "is", "57800", "credits",
 	}
 
 	invalidCreditsParam := []string{
-		"glob", "Gold", "is", "57800a", "Credits",
+		"glob", "gold", "is", "57800a", "credits",
 	}
 
 	invalidRomanParam := []string{
-		"glob", "glob", "glob", "glob", "Gold", "is", "57800", "Credits",
+		"glob", "glob", "glob", "glob", "gold", "is", "57800", "credits",
 	}
 
 	type args struct {
@@ -254,7 +254,7 @@ func TestParserMetal(t *testing.T) {
 
 				converter.
 					EXPECT().
-					RomanToArabic("I").
+					RomanToArabic(gomock.Any()).
 					Return(1, nil)
 
 			},
@@ -288,7 +288,7 @@ func TestParserMetal(t *testing.T) {
 		{
 			name: "when alien currency is invalid should return error",
 			args: args{
-				param: validAlienCurrencyParam,
+				param: invalidAlienCurrencyParam,
 			},
 			beforeEach: func(t *testing.T, a *args) {
 				converter.
@@ -345,7 +345,7 @@ func TestProcessQuestion(t *testing.T) {
 		AlienDictionary: map[string]string{
 			"glob": "I",
 		},
-		MetalValue: map[string]int{
+		MetalValue: map[string]float64{
 			"Gold": 100,
 		},
 	})
@@ -443,7 +443,7 @@ func TestProcessQuestion(t *testing.T) {
 					Return(2, nil)
 			},
 			want: want{
-				result: []string{"glob glob Gold is 102 Credits"},
+				result: []string{"glob glob Gold is 200 Credits"},
 				error:  nil,
 			},
 		},
@@ -469,18 +469,28 @@ func TestProcessQuestion(t *testing.T) {
 				param: validDoesParam,
 			},
 			beforeEach: func(t *testing.T, a *args) {
-				converter.
+				firstAlienToRoman := converter.
 					EXPECT().
 					AlienToRoman(gomock.Any(), gomock.Any()).
-					Return("II", nil).Times(2)
+					Return("II", nil)
 
 				converter.
 					EXPECT().
+					AlienToRoman(gomock.Any(), gomock.Any()).
+					Return("I", nil).After(firstAlienToRoman)
+
+				firstRomanToArabic := converter.
+					EXPECT().
 					RomanToArabic("II").
-					Return(2, nil).Times(2)
+					Return(2, nil)
+
+				converter.
+					EXPECT().
+					RomanToArabic("I").
+					Return(1, nil).After(firstRomanToArabic)
 			},
 			want: want{
-				result: []string{"glob glob Gold has larger value than glob Gold"},
+				result: []string{"glob glob Gold has more Credits than glob Gold"},
 				error:  nil,
 			},
 		},
@@ -490,15 +500,25 @@ func TestProcessQuestion(t *testing.T) {
 				param: validIsParam,
 			},
 			beforeEach: func(t *testing.T, a *args) {
+				firstAlienToRoman := converter.
+					EXPECT().
+					AlienToRoman(gomock.Any(), gomock.Any()).
+					Return("I", nil)
+
 				converter.
 					EXPECT().
 					AlienToRoman(gomock.Any(), gomock.Any()).
-					Return("II", nil).Times(2)
+					Return("II", nil).After(firstAlienToRoman)
+
+				firstRomanToArabic := converter.
+					EXPECT().
+					RomanToArabic("I").
+					Return(1, nil)
 
 				converter.
 					EXPECT().
 					RomanToArabic("II").
-					Return(2, nil).Times(2)
+					Return(2, nil).After(firstRomanToArabic)
 			},
 			want: want{
 				result: []string{"glob is smaller than glob glob"},
@@ -519,6 +539,73 @@ func TestProcessQuestion(t *testing.T) {
 					t.Errorf("got unexpected error.\n expect: %v\n actual: %v\n diff: %v\n", tc.want.error, err, diff)
 				}
 			}
+
+			if diff := deep.Equal(result, tc.want.result); diff != nil {
+				t.Errorf("got unexpected result.\n expected: %v\n actual: %v\n diff: %v\n", tc.want.result, result, diff)
+			}
+		})
+
+	}
+}
+
+func TestFixTypo(t *testing.T) {
+
+	ctrl := gomock.NewController(t)
+	converter := mockConverter.NewMockConverterService(ctrl)
+	parser := parsers.NewParser(parsers.NewParserParams{
+		Converter:       converter,
+		AlienDictionary: map[string]string{},
+		MetalValue:      map[string]float64{},
+	})
+
+	acceptedParams := "istegj glob glob smaller than glob prok?"
+
+	// notAcceptedParams := []string{
+	// 	"glob", "prok", "gold", "is", "57800", "credits",
+	// }
+
+	type args struct {
+		param string
+	}
+
+	type want struct {
+		result string
+	}
+
+	testcases := []struct {
+		name       string
+		args       args
+		beforeEach func(*testing.T, *args)
+		want       want
+	}{
+		{
+			name: "when input is valid should return success",
+			args: args{
+				param: acceptedParams,
+			},
+			beforeEach: func(t *testing.T, a *args) {},
+			want: want{
+				result: "is tegj glob glob smaller than glob prok ?",
+			},
+		},
+		// {
+		// 	name: "when input is invalid should return success",
+		// 	args: args{
+		// 		param: notAcceptedParams,
+		// 	},
+		// 	beforeEach: func(t *testing.T, a *args) {},
+		// 	want: want{
+		// 		result: false,
+		// 	},
+		// },
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+
+			tc.beforeEach(t, &tc.args)
+
+			result := parser.FixTypo(tc.args.param)
 
 			if diff := deep.Equal(result, tc.want.result); diff != nil {
 				t.Errorf("got unexpected result.\n expected: %v\n actual: %v\n diff: %v\n", tc.want.result, result, diff)

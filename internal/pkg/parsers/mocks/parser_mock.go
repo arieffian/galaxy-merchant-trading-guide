@@ -33,19 +33,18 @@ func (m *MockParserService) EXPECT() *MockParserServiceMockRecorder {
 	return m.recorder
 }
 
-// DoesQuestion mocks base method.
-func (m *MockParserService) DoesQuestion(question []string) (string, error) {
+// FixTypo mocks base method.
+func (m *MockParserService) FixTypo(param string) string {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DoesQuestion", question)
+	ret := m.ctrl.Call(m, "FixTypo", param)
 	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	return ret0
 }
 
-// DoesQuestion indicates an expected call of DoesQuestion.
-func (mr *MockParserServiceMockRecorder) DoesQuestion(question interface{}) *gomock.Call {
+// FixTypo indicates an expected call of FixTypo.
+func (mr *MockParserServiceMockRecorder) FixTypo(param interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DoesQuestion", reflect.TypeOf((*MockParserService)(nil).DoesQuestion), question)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FixTypo", reflect.TypeOf((*MockParserService)(nil).FixTypo), param)
 }
 
 // GetCurrencyValue mocks base method.
@@ -61,51 +60,6 @@ func (m *MockParserService) GetCurrencyValue(param []string) (int, error) {
 func (mr *MockParserServiceMockRecorder) GetCurrencyValue(param interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCurrencyValue", reflect.TypeOf((*MockParserService)(nil).GetCurrencyValue), param)
-}
-
-// HowManyQuestion mocks base method.
-func (m *MockParserService) HowManyQuestion(question []string) (string, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "HowManyQuestion", question)
-	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// HowManyQuestion indicates an expected call of HowManyQuestion.
-func (mr *MockParserServiceMockRecorder) HowManyQuestion(question interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HowManyQuestion", reflect.TypeOf((*MockParserService)(nil).HowManyQuestion), question)
-}
-
-// HowMuchQuestion mocks base method.
-func (m *MockParserService) HowMuchQuestion(question []string) (string, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "HowMuchQuestion", question)
-	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// HowMuchQuestion indicates an expected call of HowMuchQuestion.
-func (mr *MockParserServiceMockRecorder) HowMuchQuestion(question interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HowMuchQuestion", reflect.TypeOf((*MockParserService)(nil).HowMuchQuestion), question)
-}
-
-// IsQuestion mocks base method.
-func (m *MockParserService) IsQuestion(question []string) (string, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsQuestion", question)
-	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// IsQuestion indicates an expected call of IsQuestion.
-func (mr *MockParserServiceMockRecorder) IsQuestion(question interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsQuestion", reflect.TypeOf((*MockParserService)(nil).IsQuestion), question)
 }
 
 // ParseCurrency mocks base method.

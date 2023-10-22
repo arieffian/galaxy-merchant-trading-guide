@@ -25,7 +25,7 @@ func main() {
 	parser := parsers.NewParser(parsers.NewParserParams{
 		Converter:       converter,
 		AlienDictionary: map[string]string{},
-		MetalValue:      map[string]int{},
+		MetalValue:      map[string]float64{},
 	})
 	fileReader := readers.NewFile()
 

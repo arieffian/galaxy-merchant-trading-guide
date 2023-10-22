@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"regexp"
+	"strings"
 )
 
 type ConverterService interface {
@@ -48,7 +49,7 @@ func NewConverter() *converter {
 	return &converter{}
 }
 
-// converter based on https://github.com/brandenc40/romannumeral/blob/1823dc2593cc5ada13c3d9e8f941b1170ddcda29/romannumeral.go#L98
+// @note: converter based on https://github.com/brandenc40/romannumeral/blob/1823dc2593cc5ada13c3d9e8f941b1170ddcda29/romannumeral.go#L98
 func (c *converter) RomanToArabic(romanNumber string) (int, error) {
 
 	// validate roman number using regex
@@ -70,7 +71,7 @@ func (c *converter) RomanToArabic(romanNumber string) (int, error) {
 	return output, nil
 }
 
-// converter based on https://github.com/brandenc40/romannumeral/blob/1823dc2593cc5ada13c3d9e8f941b1170ddcda29/romannumeral.go#L72
+// @note: converter based on https://github.com/brandenc40/romannumeral/blob/1823dc2593cc5ada13c3d9e8f941b1170ddcda29/romannumeral.go#L72
 func (c *converter) ArabicToRoman(arabicNumber int) (string, error) {
 	if arabicNumber < 1 || arabicNumber >= 3999 {
 		return "", errors.New("number out of range")
@@ -93,5 +94,5 @@ func (c *converter) AlienToRoman(alienDictionary map[string]string, alienNumber 
 		romans += roman
 	}
 
-	return romans, nil
+	return strings.ToUpper(romans), nil
 }

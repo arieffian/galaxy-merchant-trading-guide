@@ -3,6 +3,7 @@ package readers
 import (
 	"bufio"
 	"os"
+	"strings"
 )
 
 type FileService interface {
@@ -29,7 +30,10 @@ func (f *file) ReadFile(fileLoc string) ([]string, error) {
 	var fileLines []string
 
 	for fileScanner.Scan() {
-		fileLines = append(fileLines, fileScanner.Text())
+		line := fileScanner.Text()
+		line = strings.TrimSpace(line)
+		line = strings.ToLower(line)
+		fileLines = append(fileLines, line)
 	}
 
 	file.Close()

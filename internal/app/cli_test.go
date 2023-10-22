@@ -58,6 +58,11 @@ func TestCLI(t *testing.T) {
 
 				parser.
 					EXPECT().
+					FixTypo(gomock.Any()).
+					Return("glob is I")
+
+				parser.
+					EXPECT().
 					ParseCurrency(gomock.Any()).
 					Return(false)
 
@@ -101,6 +106,11 @@ func TestCLI(t *testing.T) {
 					EXPECT().
 					ReadFile(gomock.Any()).
 					Return(validResult, nil)
+
+				parser.
+					EXPECT().
+					FixTypo(gomock.Any()).
+					Return("glob is I")
 
 				parser.
 					EXPECT().

@@ -6,6 +6,7 @@ require (
 	github.com/go-test/deep v1.1.0
 	github.com/golang/mock v1.6.0
 	github.com/sirupsen/logrus v1.9.3
+	golang.org/x/text v0.3.3
 )
 
 require (

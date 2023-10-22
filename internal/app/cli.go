@@ -38,6 +38,14 @@ func (c *cli) Run(ctx context.Context) error {
 		return err
 	}
 
+	processedLines := []string{}
+	for _, line := range lines {
+		processedLine := c.parser.FixTypo(line)
+		processedLines = append(processedLines, processedLine)
+	}
+
+	lines = processedLines
+
 	indices := []int{}
 	for idx, line := range lines {
 		lineArr := strings.Split(line, " ")

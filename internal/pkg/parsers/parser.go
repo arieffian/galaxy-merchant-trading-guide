@@ -1,9 +1,14 @@
 package parsers
 
 import (
+	"fmt"
+	"math"
 	"slices"
 	"strconv"
 	"strings"
+
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 
 	"github.com/arieffian/roman-alien-currency/internal/pkg/converters"
 )
@@ -13,21 +18,19 @@ type ParserService interface {
 	GetCurrencyValue(param []string) (int, error)
 	ParseMetal(param []string) (bool, error)
 	ProcessQuestion(questions []string) ([]string, error)
-	HowMuchQuestion(question []string) (string, error)
-	HowManyQuestion(question []string) (string, error)
-	DoesQuestion(question []string) (string, error)
-	IsQuestion(question []string) (string, error)
+	FixTypo(param string) string
 }
 
 type parser struct {
 	alienDictionary map[string]string
-	metalValue      map[string]int
+	metalValue      map[string]float64
 	converter       converters.ConverterService
 }
 
 var (
-	romanSymbols = []string{"I", "V", "X", "L", "C", "D", "M"}
-	metalSymbols = []string{"Gold", "Silver", "Iron"}
+	romanSymbols     = []string{"i", "v", "x", "l", "c", "d", "m"}
+	metalSymbols     = []string{"gold", "silver", "iron"}
+	reservedKeywords = []string{"is", "how", "much", "many", "credits", "does", "than", "larger", "smaller", "has", "I", "V", "X", "L", "C", "D", "M", "?"}
 )
 
 var _ ParserService = (*parser)(nil)
@@ -35,7 +38,7 @@ var _ ParserService = (*parser)(nil)
 type NewParserParams struct {
 	Converter       converters.ConverterService
 	AlienDictionary map[string]string
-	MetalValue      map[string]int
+	MetalValue      map[string]float64
 }
 
 func NewParser(p NewParserParams) *parser {
@@ -60,6 +63,32 @@ func (p *parser) ParseCurrency(param []string) bool {
 	return found
 }
 
+func (p *parser) FixTypo(param string) string {
+
+	paramArr := strings.Split(param, " ")
+	for i, param := range paramArr {
+		for _, reservedKeyword := range reservedKeywords {
+			if strings.Contains(param, reservedKeyword) && param != reservedKeyword {
+				if strings.HasPrefix(param, reservedKeyword) {
+					res := strings.Split(param, reservedKeyword)
+					res[0] = reservedKeyword
+					fixedParam := strings.Join(res, " ")
+					paramArr[i] = fixedParam
+				} else if strings.HasSuffix(param, reservedKeyword) {
+					res := strings.Split(param, reservedKeyword)
+					res[1] = reservedKeyword
+					fixedParam := strings.Join(res, " ")
+					paramArr[i] = fixedParam
+				}
+			}
+		}
+	}
+
+	result := strings.Join(paramArr, " ")
+
+	return result
+}
+
 func (p *parser) GetCurrencyValue(param []string) (int, error) {
 
 	result, err := p.converter.AlienToRoman(p.alienDictionary, param)
@@ -77,7 +106,7 @@ func (p *parser) GetCurrencyValue(param []string) (int, error) {
 // currently only support gold, silver, iron
 func (p *parser) ParseMetal(param []string) (bool, error) {
 	isIdx := slices.Index(param, "is")
-	creditsIdx := slices.Index(param, "Credits")
+	creditsIdx := slices.Index(param, "credits")
 	found := false
 
 	if isIdx != -1 && creditsIdx == len(param)-1 {
@@ -101,7 +130,7 @@ func (p *parser) ParseMetal(param []string) (bool, error) {
 				return false, err
 			}
 
-			metalValue := totalValue - romanValue
+			metalValue := float64(totalValue) / float64(romanValue)
 
 			p.metalValue[param[isIdx-1]] = metalValue
 			found = true
@@ -180,9 +209,16 @@ func (p *parser) HowManyQuestion(question []string) (string, error) {
 
 	metalValue := p.metalValue[metal]
 
-	totalValue := currencyValue + metalValue
+	totalValue := float64(currencyValue) * metalValue
 
-	answer := strings.Join(alienValue, " ") + " " + metal + " is " + strconv.Itoa(totalValue) + " Credits"
+	var strTotalValue string
+	strTotalValue = fmt.Sprintf("%.1f", totalValue)
+
+	if float64(int64(totalValue)) == totalValue {
+		strTotalValue = fmt.Sprintf("%.0f", totalValue)
+	}
+
+	answer := strings.Join(alienValue, " ") + " " + metal + " is " + strTotalValue + " Credits"
 
 	return answer, nil
 }
@@ -216,13 +252,18 @@ func (p *parser) DoesQuestion(question []string) (string, error) {
 		return "", err
 	}
 
-	totalValue1 := value1 + metal1Value
-	totalValue2 := value2 + metal2Value
+	totalValue1 := math.Trunc(float64(value1) * float64(metal1Value))
+	totalValue2 := math.Trunc(float64(value2) * float64(metal2Value))
+
+	fmt.Println(totalValue1)
+	fmt.Println(totalValue2)
 
 	if totalValue1 < totalValue2 {
-		answer = strings.Join(value1Arr, " ") + " " + metal1 + " has smaller value than " + strings.Join(value2Arr, " ") + " " + metal2
+		answer = strings.Join(value1Arr, " ") + " " + cases.Title(language.AmericanEnglish, cases.Compact).String(metal1) + " has less Credits than " + strings.Join(value2Arr, " ") + " " + cases.Title(language.AmericanEnglish, cases.Compact).String(metal2)
+	} else if totalValue1 > totalValue2 {
+		answer = strings.Join(value1Arr, " ") + " " + cases.Title(language.AmericanEnglish, cases.Compact).String(metal1) + " has more Credits than " + strings.Join(value2Arr, " ") + " " + cases.Title(language.AmericanEnglish, cases.Compact).String(metal2)
 	} else {
-		answer = strings.Join(value1Arr, " ") + " " + metal1 + " has larger value than " + strings.Join(value2Arr, " ") + " " + metal2
+		answer = strings.Join(value1Arr, " ") + " " + cases.Title(language.AmericanEnglish, cases.Compact).String(metal1) + " has equal Credits to " + strings.Join(value2Arr, " ") + " " + cases.Title(language.AmericanEnglish, cases.Compact).String(metal2)
 	}
 
 	return answer, nil
@@ -258,8 +299,10 @@ func (p *parser) IsQuestion(question []string) (string, error) {
 
 	if value1 > value2 {
 		answer = strings.Join(value1Arr, " ") + " is larger than " + strings.Join(value2Arr, " ")
-	} else {
+	} else if value1 < value2 {
 		answer = strings.Join(value1Arr, " ") + " is smaller than " + strings.Join(value2Arr, " ")
+	} else {
+		answer = strings.Join(value1Arr, " ") + " is equal to " + strings.Join(value2Arr, " ")
 	}
 
 	return answer, nil

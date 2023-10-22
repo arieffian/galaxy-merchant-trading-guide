@@ -62,10 +62,10 @@ I have no idea what you are talking about
 ---
 ## Solution
 
-This solution is built using go 1.20. This app will read `input` file in the root directory. Currently, the input file only supported lowercase characters except metals (`Gold`, `Silver`, `Iron`) and `Credits` keywords.
+This solution is built using go 1.20. This app will read `input` file in the root directory. ~~Currently, the input file only supported lowercase characters except metals (`Gold`, `Silver`, `Iron`) and `Credits` keywords.~~ Currently suppport incase-sensitive format for input.
 
 ##### Input file Rules
-1. All characters must be in lowercase except for metal names and `Credits` keywords
+1. ~~All characters must be in lowercase except for metal names and `Credits` keywords~~ Currently, support incase-sensitive format
 2. Roman number only supported between 1 to 3999
 3. Metal only supported `Gold`, `Silver`, and `Iron`
 
